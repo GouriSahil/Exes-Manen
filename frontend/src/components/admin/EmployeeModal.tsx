@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Employee } from "@/types/employee";
+import { Employee } from "@/services/authService";
 import Modal from "@/components/ui/Modal";
 import ModalFooter from "@/components/ui/ModalFooter";
+import CustomSelect, { SelectOption } from "@/components/ui/CustomSelect";
 import { departments } from "@/constants/admin";
 
 interface EmployeeModalProps {
@@ -24,42 +25,65 @@ export default function EmployeeModal({
   isProcessing,
 }: EmployeeModalProps) {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
-    role: "",
+    role: "" as "admin" | "employee" | "",
     department: "",
-    status: "active" as "active" | "inactive",
+    is_active: true,
   });
+
+  // Select options
+  const roleOptions: SelectOption[] = [
+    { value: "", label: "Select a role" },
+    ...roles.map((role) => ({
+      value: role.name,
+      label: role.name.charAt(0).toUpperCase() + role.name.slice(1),
+    })),
+  ];
+
+  const departmentOptions: SelectOption[] = [
+    { value: "", label: "Select a department" },
+    ...departments.map((dept) => ({
+      value: dept,
+      label: dept,
+    })),
+  ];
+
+  const statusOptions: SelectOption[] = [
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+  ];
 
   useEffect(() => {
     if (employee) {
       setFormData({
-        firstName: employee.firstName,
-        lastName: employee.lastName,
+        name: employee.name,
         email: employee.email,
         role: employee.role,
-        department: employee.department,
-        status: employee.status,
+        department: "", // Not available in authService Employee type
+        is_active: employee.is_active,
       });
     } else {
       setFormData({
-        firstName: "",
-        lastName: "",
+        name: "",
         email: "",
-        role: "",
+        role: "" as "admin" | "employee" | "",
         department: "",
-        status: "active",
+        is_active: true,
       });
     }
   }, [employee]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    const employeeData = {
+      ...formData,
+      role: formData.role || undefined,
+    };
+    onSave(employeeData);
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -72,33 +96,18 @@ export default function EmployeeModal({
     >
       <form onSubmit={handleSubmit}>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                First Name *
-              </label>
-              <input
-                type="text"
-                value={formData.firstName}
-                onChange={(e) => handleInputChange("firstName", e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-background text-foreground"
-                placeholder="Enter first name"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Last Name *
-              </label>
-              <input
-                type="text"
-                value={formData.lastName}
-                onChange={(e) => handleInputChange("lastName", e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-background text-foreground"
-                placeholder="Enter last name"
-                required
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Full Name *
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-background text-foreground"
+              placeholder="Enter full name"
+              required
+            />
           </div>
 
           <div>
@@ -125,52 +134,44 @@ export default function EmployeeModal({
             <label className="block text-sm font-medium text-foreground mb-2">
               Role *
             </label>
-            <select
+            <CustomSelect
+              options={roleOptions}
               value={formData.role}
-              onChange={(e) => handleInputChange("role", e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-background text-foreground"
-              required
-            >
-              <option value="">Select a role</option>
-              {roles.map((role) => (
-                <option key={role.id} value={role.name}>
-                  {role.name}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => handleInputChange("role", value)}
+              placeholder="Select a role"
+              variant="outline"
+              size="md"
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Department *
             </label>
-            <select
+            <CustomSelect
+              options={departmentOptions}
               value={formData.department}
-              onChange={(e) => handleInputChange("department", e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-background text-foreground"
-              required
-            >
-              <option value="">Select a department</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => handleInputChange("department", value)}
+              placeholder="Select a department"
+              variant="outline"
+              size="md"
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
               Status
             </label>
-            <select
-              value={formData.status}
-              onChange={(e) => handleInputChange("status", e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-background text-foreground"
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+            <CustomSelect
+              options={statusOptions}
+              value={formData.is_active ? "active" : "inactive"}
+              onChange={(value) =>
+                handleInputChange("is_active", value === "active")
+              }
+              placeholder="Select status"
+              variant="outline"
+              size="md"
+            />
           </div>
         </div>
 
