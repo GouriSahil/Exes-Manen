@@ -1,0 +1,24 @@
+{
+  "name": "exes-manen",
+  "version": "1.0.0",
+  "description": "Monorepo with Python backend and Next.js frontend",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"pnpm dev:backend\" \"pnpm dev:frontend\" --names \"backend,frontend\" --prefix-colors \"blue,green\"",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "build:frontend": "pnpm --filter frontend build",
+    "build:backend": "pnpm --filter backend build",
+    "install:all": "pnpm install",
+    "clean": "pnpm --filter '*' clean"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "concurrently": "^9.2.1"
+  },
+  "packageManager": "pnpm@10.18.0"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@exes-manen/backend",
+  "version": "1.0.0",
+  "description": "Python backend for Exes Manen",
+  "private": true,
+  "scripts": {
+    "dev": "source venv/bin/activate && python main.py",
+    "install": "source venv/bin/activate && pip install -r requirements.txt",
+    "build": "source venv/bin/activate && pip install -r requirements.txt",
+    "clean": "rm -rf venv __pycache__ *.pyc",
+    "activate": "source venv/bin/activate"
+  },
+  "type": "module"
+}
