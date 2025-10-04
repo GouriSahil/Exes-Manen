@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import EmployeeManagement from "@/components/admin/EmployeeManagement";
 import { useAuthStore } from "@/stores";
+import { authService, Employee } from "@/services/authService";
+import EmployeeManagement from "@/components/admin/EmployeeManagement";
+import EmployeeModal from "@/components/admin/EmployeeModal";
 
 export default function AdminPage() {
   const { user, organization } = useAuthStore();
@@ -13,53 +15,142 @@ export default function AdminPage() {
     pendingApprovals: 0,
     totalExpenses: 0,
   });
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
+    null
+  );
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setIsLoading(true);
+
+      // Load employees
+      const employeesResponse = await authService.getEmployees();
+      setEmployees(employeesResponse.employees);
+
+      // Calculate stats
+      const totalEmployees = employeesResponse.employees.length;
+      const activeEmployees = employeesResponse.employees.filter(
+        (emp) => emp.is_active
+      ).length;
+
+      setStats({
+        totalEmployees,
+        activeEmployees,
+        pendingApprovals: 0, // TODO: Connect to expenses API
+        totalExpenses: 0, // TODO: Connect to expenses API
+      });
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddEmployee = () => {
+    setSelectedEmployee(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditEmployee = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedEmployee(null);
+  };
+
+  const testAuth = async () => {
+    try {
+      console.log("Testing authentication...");
+      const currentUser = await authService.getCurrentUser();
+      console.log("Current user from API:", currentUser);
+    } catch (error) {
+      console.error("Auth test failed:", error);
+    }
+  };
+
+  const handleSaveEmployee = async (employeeData: any) => {
+    try {
+      setIsProcessing(true);
+
+      // Debug: Check authentication status
+      console.log("Current user:", user);
+      console.log("User role:", user?.role);
+      console.log("Auth token:", authService.getToken());
+      console.log("Is authenticated:", authService.isAuthenticated());
+
+      if (selectedEmployee) {
+        console.log("Update employee:", employeeData);
+      } else {
+        // Create new employee (password will be generated automatically by backend)
+        console.log("Creating employee with data:", {
+          name: employeeData.name,
+          email: employeeData.email,
+        });
+
+        await authService.createEmployee({
+          name: employeeData.name,
+          email: employeeData.email,
+        });
+      }
+
+      // Reload employees
+      await loadDashboardData();
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error saving employee:", error);
+      // Show user-friendly error message
+      alert(
+        `Failed to save employee: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Mock roles data - replace with actual roles from your system
+  const roles = [
+    { id: "1", name: "admin" },
+    { id: "2", name: "employee" },
+  ];
 
   return (
     <ProtectedRoute requiredRoles={["admin"]}>
       <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/30 to-secondary-50/30 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-900 pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Welcome Header */}
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header Section */}
           <div className="mb-8 animate-fadeInUp">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div>
                 <h1 className="text-4xl font-bold text-foreground mb-2">
-                  Welcome back, {user?.name}! 👋
+                  Organization Dashboard
                 </h1>
-                <p className="text-muted-foreground">
-                  Managing {organization?.name || "your organization"}
+                <p className="text-muted-foreground text-lg">
+                  Welcome back, {user?.name}! Here's what's happening at{" "}
+                  {organization?.name}.
                 </p>
               </div>
-              <div className="hidden md:flex items-center gap-4">
-                <div className="card p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-600 to-secondary-600 flex items-center justify-center text-white font-bold text-lg">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        {user?.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {user?.role === "admin" ? "Admin" : "Employee"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Stats Cards */}
-          <div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fadeInUp"
-            style={{ animationDelay: "0.1s" }}
-          >
-            {/* Total Employees */}
-            <div className="card p-6 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
+              {/* Quick Actions */}
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={handleAddEmployee}
+                  className="btn-primary flex items-center gap-2"
+                >
                   <svg
-                    className="w-6 h-6 text-blue-600 dark:text-blue-400"
+                    className="w-5 h-5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -68,26 +159,17 @@ export default function AdminPage() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                     />
                   </svg>
-                </div>
-                <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-2 py-1 rounded-full">
-                  +0%
-                </span>
-              </div>
-              <h3 className="text-2xl font-bold text-foreground mb-1">
-                {stats.totalEmployees}
-              </h3>
-              <p className="text-sm text-muted-foreground">Total Employees</p>
-            </div>
-
-            {/* Active Employees */}
-            <div className="card p-6 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
+                  Add Employee
+                </button>
+                <button
+                  onClick={testAuth}
+                  className="btn-secondary flex items-center gap-2"
+                >
                   <svg
-                    className="w-6 h-6 text-green-600 dark:text-green-400"
+                    className="w-5 h-5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -99,85 +181,9 @@ export default function AdminPage() {
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                </div>
-                <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-2 py-1 rounded-full">
-                  Active
-                </span>
-              </div>
-              <h3 className="text-2xl font-bold text-foreground mb-1">
-                {stats.activeEmployees}
-              </h3>
-              <p className="text-sm text-muted-foreground">Active Accounts</p>
-            </div>
-
-            {/* Pending Approvals */}
-            <div className="card p-6 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/20 rounded-xl flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-yellow-600 dark:text-yellow-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <span className="text-xs font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20 px-2 py-1 rounded-full">
-                  Pending
-                </span>
-              </div>
-              <h3 className="text-2xl font-bold text-foreground mb-1">
-                {stats.pendingApprovals}
-              </h3>
-              <p className="text-sm text-muted-foreground">Pending Approvals</p>
-            </div>
-
-            {/* Total Expenses */}
-            <div className="card p-6 hover:shadow-2xl transition-all duration-300">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-xl flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-purple-600 dark:text-purple-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <span className="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/20 px-2 py-1 rounded-full">
-                  {organization?.currency_code || "USD"}
-                </span>
-              </div>
-              <h3 className="text-2xl font-bold text-foreground mb-1">
-                {stats.totalExpenses}
-              </h3>
-              <p className="text-sm text-muted-foreground">Total Expenses</p>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div
-            className="mb-8 animate-fadeInUp"
-            style={{ animationDelay: "0.2s" }}
-          >
-            <div className="card p-6">
-              <h2 className="text-xl font-bold text-foreground mb-4">
-                Quick Actions
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button className="btn-primary flex items-center justify-center gap-2">
+                  Test Auth
+                </button>
+                <button className="btn-secondary flex items-center gap-2">
                   <svg
                     className="w-5 h-5"
                     fill="none"
@@ -188,28 +194,12 @@ export default function AdminPage() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                     />
                   </svg>
-                  Add New Employee
+                  View Reports
                 </button>
-                <button className="btn-secondary flex items-center justify-center gap-2">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                    />
-                  </svg>
-                  View All Expenses
-                </button>
-                <button className="btn-secondary flex items-center justify-center gap-2">
+                <button className="btn-secondary flex items-center gap-2">
                   <svg
                     className="w-5 h-5"
                     fill="none"
@@ -229,16 +219,162 @@ export default function AdminPage() {
                       d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
-                  Organization Settings
+                  Settings
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Employee Management Section */}
-          <div className="animate-fadeInUp" style={{ animationDelay: "0.3s" }}>
-            <EmployeeManagement />
+          {/* Stats Grid */}
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fadeInUp"
+            style={{ animationDelay: "0.1s" }}
+          >
+            {/* Total Employees */}
+            <div className="card p-6 hover:shadow-2xl transition-all duration-300 group">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-foreground">
+                    {stats.totalEmployees}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Total</p>
+                </div>
+              </div>
+              <h3 className="text-sm font-medium text-foreground mb-1">
+                Team Members
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Active organization members
+              </p>
+            </div>
+
+            {/* Active Employees */}
+            <div className="card p-6 hover:shadow-2xl transition-all duration-300 group">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-foreground">
+                    {stats.activeEmployees}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Active</p>
+                </div>
+              </div>
+              <h3 className="text-sm font-medium text-foreground mb-1">
+                Active Users
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Currently active accounts
+              </p>
+            </div>
+
+            {/* Pending Approvals */}
+            <div className="card p-6 hover:shadow-2xl transition-all duration-300 group">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-foreground">
+                    {stats.pendingApprovals}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Pending</p>
+                </div>
+              </div>
+              <h3 className="text-sm font-medium text-foreground mb-1">
+                Pending Approvals
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Awaiting your review
+              </p>
+            </div>
+
+            {/* Total Expenses */}
+            <div className="card p-6 hover:shadow-2xl transition-all duration-300 group">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-foreground">
+                    ${stats.totalExpenses.toLocaleString()}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {organization?.currency_code || "USD"}
+                  </p>
+                </div>
+              </div>
+              <h3 className="text-sm font-medium text-foreground mb-1">
+                Total Expenses
+              </h3>
+              <p className="text-xs text-muted-foreground">All time expenses</p>
+            </div>
           </div>
+
+          {/* Main Content Grid */}
+          <EmployeeManagement onEditEmployee={handleEditEmployee} />
+
+          {/* Employee Modal */}
+          <EmployeeModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            employee={selectedEmployee}
+            roles={roles}
+            onSave={handleSaveEmployee}
+            isProcessing={isProcessing}
+          />
         </div>
       </div>
     </ProtectedRoute>
