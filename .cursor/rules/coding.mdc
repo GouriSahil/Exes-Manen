@@ -1,0 +1,192 @@
+---
+alwaysApply: true
+---
+
+You are an expert in TypeScript, Node.js, Next.js App Router, React, Shadcn UI, Radix UI and Tailwind.
+
+Code Style and Structure
+
+- Write concise, technical TypeScript code with accurate examples.
+- Use functional and declarative programming patterns; avoid classes.
+- Prefer iteration and modularization over code duplication.
+- Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
+- Structure files: exported component, subcomponents, helpers, static content, types.
+
+Naming Conventions
+
+- Use lowercase with dashes for directories (e.g., components/auth-wizard).
+- Favor named exports for components.
+
+TypeScript Usage
+
+- Use TypeScript for all code; prefer interfaces over types.
+- Avoid enums; use maps instead.
+- Use functional components with TypeScript interfaces.
+
+Syntax and Formatting
+
+- Use the "function" keyword for pure functions.
+- Avoid unnecessary curly braces in conditionals; use concise syntax for simple statements.
+- Use declarative JSX.
+
+UI and Styling
+
+- Use Shadcn UI, Radix, and Tailwind for components and styling.
+- Implement responsive design with Tailwind CSS; use a mobile-first approach.
+
+Custom Components
+
+- Always create custom components for reusable UI elements instead of using raw HTML.
+- Build a comprehensive component library with consistent design patterns.
+- Create custom components for all form elements: Input, Button, Select, Textarea, Checkbox, Radio, Switch.
+- Implement custom layout components: Card, Container, Grid, Flex, Stack, Divider.
+- Build custom feedback components: Alert, Toast, Modal, Dialog, Tooltip, Popover.
+- Create custom navigation components: Navbar, Sidebar, Breadcrumb, Pagination, Tabs.
+- Design custom data display components: Table, List, Badge, Avatar, Progress, Skeleton.
+- Implement custom form components: FormField, FormGroup, FormLabel, FormError, FormHelp.
+
+Component Design Principles
+
+- Each component should have a single responsibility and be highly reusable.
+- Use compound component patterns for complex UI elements (e.g., Card with CardHeader, CardContent, CardFooter).
+- Implement proper TypeScript interfaces for all component props with clear documentation.
+- Use forwardRef for components that need DOM access (inputs, buttons, etc.).
+- Implement proper accessibility attributes (ARIA labels, roles, keyboard navigation).
+- Support both controlled and uncontrolled component patterns where appropriate.
+- Include proper error boundaries and loading states for all components.
+- Use CSS-in-JS or Tailwind classes for styling, avoid inline styles.
+
+Component Structure
+
+- Place all custom components in `src/components/ui/` directory.
+- Use PascalCase for component file names (e.g., `CustomButton.tsx`).
+- Export components as named exports with descriptive names.
+- Include a `index.ts` file in each component directory for clean imports.
+- Group related components in subdirectories (e.g., `forms/`, `layout/`, `feedback/`).
+- Create a main `index.ts` file in the components directory for centralized exports.
+
+Form Components
+
+- Create a base `Input` component with variants (text, email, password, number, search).
+- Implement `Button` component with variants (primary, secondary, outline, ghost, link).
+- Build `Select` component with proper keyboard navigation and accessibility.
+- Create `Textarea` component with auto-resize and character count features.
+- Implement `Checkbox` and `Radio` components with proper labeling and grouping.
+- Build `Switch` component for toggle functionality.
+- Create `DatePicker` and `TimePicker` components for date/time selection.
+- Implement `FileUpload` component with drag-and-drop support.
+
+Component Props and Variants
+
+- Use a consistent variant system (size: sm, md, lg; variant: primary, secondary, etc.).
+- Implement proper prop validation with TypeScript and runtime validation.
+- Use discriminated unions for variant props to ensure type safety.
+- Include className prop for custom styling overrides.
+- Implement proper default props and optional chaining.
+- Use proper event handlers with correct TypeScript typing.
+
+Component Composition and Patterns
+
+- Use render props pattern for flexible component composition.
+- Implement higher-order components (HOCs) for cross-cutting concerns.
+- Use custom hooks for shared component logic and state management.
+- Create compound components with proper context sharing.
+- Implement slot-based composition for flexible layouts.
+- Use polymorphic components with proper TypeScript generics.
+- Create wrapper components for common styling patterns.
+- Implement proper component composition with children props.
+
+Component Testing and Quality
+
+- Write unit tests for all custom components using React Testing Library.
+- Test component behavior, not implementation details.
+- Include accessibility tests using jest-axe.
+- Test component variants and prop combinations.
+- Mock external dependencies and API calls in tests.
+- Use visual regression testing for component consistency.
+- Test keyboard navigation and screen reader compatibility.
+- Include error boundary testing for component resilience.
+
+Component Documentation
+
+- Document all component props with JSDoc comments.
+- Include usage examples and code snippets in component files.
+- Create Storybook stories for component showcase and testing.
+- Document component variants, sizes, and use cases.
+- Include accessibility guidelines and keyboard shortcuts.
+- Document component composition patterns and best practices.
+- Provide migration guides for component updates.
+- Include performance considerations and optimization tips.
+
+State Management in Components
+
+- Use local state for component-specific data.
+- Implement proper state lifting patterns for shared data.
+- Use context for deeply nested component state sharing.
+- Implement proper state normalization for complex data structures.
+- Use reducer pattern for complex state logic.
+- Implement proper state persistence and hydration.
+- Use optimistic updates for better user experience.
+- Handle loading and error states consistently across components.
+
+Performance Optimization
+
+- Minimize 'use client', 'useEffect', and 'setState'; favor React Server Components (RSC).
+- Wrap client components in Suspense with fallback.
+- Use dynamic loading for non-critical components.
+- Optimize images: use WebP format, include size data, implement lazy loading.
+
+Key Conventions
+
+- Use 'nuqs' for URL search parameter state management.
+- Optimize Web Vitals (LCP, CLS, FID).
+- Limit 'use client':
+  - Favor server components and Next.js SSR.
+  - Use only for Web API access in small components.
+  - Avoid for data fetching or state management.
+
+Follow Next.js docs for Data Fetching, Rendering, and Routing.
+
+Component Best Practices
+
+- Never use raw HTML elements when custom components are available.
+- Always prefer composition over inheritance for component relationships.
+- Use proper TypeScript generics for reusable component patterns.
+- Implement proper error boundaries around component trees.
+- Use React.memo() for expensive components with stable props.
+- Implement proper cleanup in useEffect hooks for component unmounting.
+- Use proper key props for dynamic component lists.
+- Avoid prop drilling by using context or state management libraries.
+
+Common Component Patterns
+
+- Create a base `BaseComponent` with common props and styling.
+- Implement a `Variant` type system for consistent component variations.
+- Use `as` prop pattern for polymorphic components (Button as="a").
+- Create `Provider` components for context-based state management.
+- Implement `Compound` components for complex UI patterns (Accordion, Tabs).
+- Use `Render Props` for flexible component behavior.
+- Create `Higher-Order Components` for cross-cutting concerns.
+- Implement `Custom Hooks` for shared component logic.
+
+Component Naming Conventions
+
+- Use descriptive names that indicate component purpose (UserProfile, LoginForm).
+- Prefix utility components with "Base" (BaseButton, BaseInput).
+- Use "Provider" suffix for context providers (ThemeProvider, AuthProvider).
+- Use "Container" suffix for data-fetching components (UserContainer).
+- Use "Wrapper" suffix for layout components (PageWrapper, FormWrapper).
+- Use "Item" suffix for list item components (TodoItem, UserItem).
+- Use "Field" suffix for form field components (EmailField, PasswordField).
+- Use "Modal" suffix for modal/dialog components (ConfirmModal, UserModal).
+
+Component File Organization
+
+- Group related components in feature-based directories.
+- Use index files for clean component exports.
+- Separate component logic from presentation when complex.
+- Keep component files under 200 lines when possible.
+- Use co-location for component-specific utilities and types.
+- Separate component stories and tests in dedicated directories.
+- Use barrel exports for clean import statements.
+- Maintain consistent file naming across the component library.
