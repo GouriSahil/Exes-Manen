@@ -60,7 +60,16 @@ export default function LoginPage() {
 
     try {
       await login(formData.email, formData.password);
-      router.push("/");
+
+      // Get user from store to check role
+      const { user } = useAuthStore.getState();
+
+      // Redirect based on role
+      if (user?.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/expenses");
+      }
     } catch (error) {
       console.error("Login error:", error);
     }
