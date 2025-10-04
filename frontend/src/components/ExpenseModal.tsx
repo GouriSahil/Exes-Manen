@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CustomSelect, { SelectOption } from "./ui/CustomSelect";
+import { getCurrentDateString } from "@/utils/date";
 
 interface ExpenseData {
   employeeName: string;
@@ -57,13 +58,21 @@ export default function ExpenseModal({
   const [formData, setFormData] = useState<ExpenseData>({
     employeeName: "",
     description: "",
-    date: new Date().toISOString().split("T")[0],
+    date: "", // Initialize empty to avoid hydration mismatch
     category: "",
     paidBy: "",
     remarks: "",
     amount: "",
     status: "Draft",
   });
+
+  // Set the current date after component mounts to avoid hydration mismatch
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      date: getCurrentDateString(),
+    }));
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -86,7 +95,7 @@ export default function ExpenseModal({
     setFormData({
       employeeName: "",
       description: "",
-      date: new Date().toISOString().split("T")[0],
+      date: getCurrentDateString(),
       category: "",
       paidBy: "",
       remarks: "",
