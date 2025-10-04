@@ -193,6 +193,7 @@ def get_current_user():
                 "id": str(user.id),
                 "email": user.email,
                 "name": user.name,
+                "role": user.role.value,
                 "company_id": str(user.company_id),
                 "is_active": user.is_active,
                 "last_login": user.last_login.isoformat() if user.last_login else None,
