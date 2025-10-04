@@ -1,12 +1,9 @@
 from flask_cors import CORS
-from . import app, db
-from .routes import api_bp
+from app import app, db
+from app import routes  # This will register the routes
 
 # Configure CORS for Flask
 CORS(app, origins=["http://localhost:3000"], supports_credentials=True)
-
-# Register the API blueprint
-app.register_blueprint(api_bp)
 
 @app.route("/")
 def root():
