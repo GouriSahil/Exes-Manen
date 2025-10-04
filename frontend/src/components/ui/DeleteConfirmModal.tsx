@@ -64,7 +64,10 @@ export default function DeleteConfirmModal({
           {itemName && (
             <>
               {" "}
-              <span className="font-medium text-foreground">"{itemName}"</span>?
+              <span className="font-medium text-foreground">
+                &quot;{itemName}&quot;
+              </span>
+              ?
             </>
           )}
         </p>

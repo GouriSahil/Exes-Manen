@@ -1,5 +1,5 @@
 import { Employee, Role, Team } from "@/types/employee";
-import { getCurrentDateString } from "@/utils/password";
+import { getCurrentDateString } from "@/utils/date";
 
 // Mock data - replace with actual API calls
 export const mockEmployees: Employee[] = [

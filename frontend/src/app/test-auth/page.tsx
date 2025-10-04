@@ -178,7 +178,7 @@ export default function TestAuthPage() {
               </li>
               <li>Login as admin and verify you can access all routes</li>
               <li>
-                Check the browser's network tab to see middleware redirects
+                Check the browser&apos;s network tab to see middleware redirects
               </li>
             </ol>
           </div>
