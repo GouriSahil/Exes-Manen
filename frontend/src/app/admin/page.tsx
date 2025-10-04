@@ -1,6 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+// Utility function to get consistent date string
+const getCurrentDateString = () => {
+  const now = new Date();
+  return now.toISOString().split("T")[0];
+};
 
 interface Employee {
   id: string;
@@ -128,7 +134,8 @@ const mockTeams: Team[] = [
   {
     id: "1",
     name: "Frontend Development",
-    description: "Responsible for user interface and user experience development",
+    description:
+      "Responsible for user interface and user experience development",
     teamLeader: "1",
     teamLeaderName: "John Doe",
     members: ["1", "2"],
@@ -277,9 +284,9 @@ export default function AdminPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const newEmployee: Employee = {
-        id: Date.now().toString(),
+        id: `emp_${Math.random().toString(36).substr(2, 9)}`,
         ...employeeForm,
-        createdAt: new Date().toISOString().split("T")[0],
+        createdAt: getCurrentDateString(),
         temporaryPassword: tempPassword,
       };
 
@@ -361,7 +368,7 @@ The Exes Manen Team
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const newRole: Role = {
-        id: Date.now().toString(),
+        id: `role_${Math.random().toString(36).substr(2, 9)}`,
         ...roleForm,
         isCustom: true,
         employeeCount: 0,
@@ -433,17 +440,21 @@ The Exes Manen Team
       // TODO: Replace with actual API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const teamLeader = employees.find((emp) => emp.id === teamForm.teamLeader);
+      const teamLeader = employees.find(
+        (emp) => emp.id === teamForm.teamLeader
+      );
       const newTeam: Team = {
-        id: Date.now().toString(),
+        id: `team_${Math.random().toString(36).substr(2, 9)}`,
         name: teamForm.name,
         description: teamForm.description,
         teamLeader: teamForm.teamLeader,
-        teamLeaderName: teamLeader ? `${teamLeader.firstName} ${teamLeader.lastName}` : "",
+        teamLeaderName: teamLeader
+          ? `${teamLeader.firstName} ${teamLeader.lastName}`
+          : "",
         members: teamForm.members,
         memberCount: teamForm.members.length,
         department: teamForm.department,
-        createdAt: new Date().toISOString().split("T")[0],
+        createdAt: getCurrentDateString(),
       };
 
       setTeams((prev) => [...prev, newTeam]);
@@ -815,7 +826,7 @@ The Exes Manen Team
                       </td>
                       <td className="py-4 px-4">
                         <div className="text-muted-foreground">
-                          {new Date(employee.createdAt).toLocaleDateString()}
+                          {employee.createdAt}
                         </div>
                       </td>
                       <td className="py-4 px-4">
@@ -993,7 +1004,7 @@ The Exes Manen Team
                       </td>
                       <td className="py-4 px-4">
                         <div className="text-muted-foreground">
-                          {new Date(team.createdAt).toLocaleDateString()}
+                          {team.createdAt}
                         </div>
                       </td>
                       <td className="py-4 px-4">
