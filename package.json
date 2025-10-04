@@ -1,6 +1,7 @@
 {
   "name": "exes-manen",
-  "version": "1.0.0",
+  "version": "1.0.5",
+  "author": "Bhavesh Patil",
   "description": "Monorepo with Python backend and Next.js frontend",
   "private": true,
   "workspaces": [
