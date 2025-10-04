@@ -31,7 +31,7 @@ export default function Modal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div
-        className={`bg-background rounded-lg w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto`}
+        className={`bg-background rounded-lg w-full ${sizeClasses[size]} max-h-[90vh] overflow-visible relative`}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
@@ -59,7 +59,9 @@ export default function Modal({
         </div>
 
         {/* Content */}
-        <div className="p-6">{children}</div>
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+          {children}
+        </div>
       </div>
     </div>
   );
