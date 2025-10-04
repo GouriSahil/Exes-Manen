@@ -1,13 +1,4 @@
-"""
-Routes package for Exes Manen Flask backend.
 
-This package contains all the route blueprints organized by functionality:
-- companies: Company management endpoints
-- users: User management endpoints  
-- expenses: Expense management endpoints
-- schema: Database schema management endpoints
-- auth: Authentication endpoints
-"""
 
 from .companies import companies_bp
 from .users import users_bp
