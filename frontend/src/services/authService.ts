@@ -57,7 +57,7 @@ export interface RegisterResponse {
 export interface CreateEmployeeRequest {
   email: string;
   name: string;
-  password: string;
+  password?: string; // Optional - backend generates temp password if not provided
 }
 
 export interface CreateEmployeeResponse {
