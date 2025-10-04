@@ -4,11 +4,11 @@ import type { NextRequest } from "next/server";
 // Define protected routes and their required roles
 // Note: Routes are now in (authed) route group, so the actual paths remain the same
 const protectedRoutes = {
-  "/expenses": ["user", "admin"],
-  "/approvals": ["user", "admin"],
+  "/expenses": ["employee", "admin"],
+  "/approvals": ["employee", "admin"],
   "/admin": ["admin"],
-  "/profile": ["user", "admin"],
-  "/reports": ["user", "admin"],
+  "/profile": ["employee", "admin"],
+  "/reports": ["employee", "admin"],
 };
 
 // Public routes that don't require authentication
