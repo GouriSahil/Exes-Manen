@@ -1,7 +1,19 @@
-# Core dependencies
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
+# Core Flask dependencies
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-RESTful==0.3.10
+Flask-Migrate==4.0.5
+Flask-JWT-Extended==4.6.0
+Flask-Bcrypt==1.0.1
+Flask-CORS==4.0.0
+python-dotenv==1.0.0
+psycopg2-binary==2.9.9
+
+# Schema management libraries
+sqlacodegen==3.0.0
+alembic==1.13.1
+sqlalchemy-utils==0.41.1
 
 # Development dependencies
 pytest==7.4.3
