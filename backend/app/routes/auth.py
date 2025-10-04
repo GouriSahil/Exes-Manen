@@ -200,11 +200,15 @@ def get_current_user():
     """Get current user profile"""
     try:
         user_id = get_jwt_identity()
+        print(f"DEBUG: get_current_user - JWT Identity: {user_id}")
         user = User.query.filter_by(id=user_id).first()
+        print(f"DEBUG: get_current_user - User found: {user}")
         
         if not user:
+            print("DEBUG: get_current_user - User not found")
             return jsonify({"error": "User not found"}), 404
         
+        print(f"DEBUG: get_current_user - User role: {user.role}")
         return jsonify({
             "user": {
                 "id": str(user.id),
@@ -219,6 +223,7 @@ def get_current_user():
         }), 200
         
     except Exception as e:
+        print(f"DEBUG: get_current_user - Error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @auth_bp.route('/refresh', methods=['POST'])
@@ -327,12 +332,17 @@ def require_admin_role(f):
     def decorated_function(*args, **kwargs):
         try:
             user_id = get_jwt_identity()
+            print(f"DEBUG: require_admin_role - JWT Identity: {user_id}")
             user = User.query.filter_by(id=user_id).first()
+            print(f"DEBUG: require_admin_role - User found: {user}")
             
             if not user:
+                print("DEBUG: require_admin_role - User not found")
                 return jsonify({"error": "User not found"}), 404
             
+            print(f"DEBUG: require_admin_role - User role: {user.role}")
             if user.role != UserRoleEnum.admin:
+                print("DEBUG: require_admin_role - User is not admin")
                 return jsonify({"error": "Admin access required"}), 403
             
             return f(*args, **kwargs)
