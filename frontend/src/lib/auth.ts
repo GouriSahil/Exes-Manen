@@ -5,7 +5,7 @@ export interface User {
   email: string;
   name: string;
   avatar?: string;
-  role: "user" | "admin";
+  role: "employee" | "admin";
   createdAt: string;
   updatedAt: string;
 }
@@ -62,7 +62,7 @@ export async function isAdmin(): Promise<boolean> {
 /**
  * Check if the current user has a specific role
  */
-export async function hasRole(role: "user" | "admin"): Promise<boolean> {
+export async function hasRole(role: "employee" | "admin"): Promise<boolean> {
   const user = await getCurrentUser();
   return user?.role === role;
 }
@@ -70,7 +70,7 @@ export async function hasRole(role: "user" | "admin"): Promise<boolean> {
 /**
  * Get user role
  */
-export async function getUserRole(): Promise<"user" | "admin" | null> {
+export async function getUserRole(): Promise<"employee" | "admin" | null> {
   const user = await getCurrentUser();
   return user?.role || null;
 }
@@ -79,11 +79,11 @@ export async function getUserRole(): Promise<"user" | "admin" | null> {
  * Protected route configuration
  */
 export const PROTECTED_ROUTES = {
-  "/expenses": ["user", "admin"],
-  "/approvals": ["user", "admin"],
+  "/expenses": ["employee", "admin"],
+  "/approvals": ["employee", "admin"],
   "/admin": ["admin"],
-  "/profile": ["user", "admin"],
-  "/reports": ["user", "admin"],
+  "/profile": ["employee", "admin"],
+  "/reports": ["employee", "admin"],
 } as const;
 
 /**

@@ -6,14 +6,15 @@ import { useEffect } from "react";
 
 interface UseAuthOptions {
   redirectTo?: string;
-  requiredRoles?: ("user" | "admin")[];
+  requiredRoles?: ("admin" | "employee")[];
 }
 
 /**
  * Hook for authentication checks and redirects
  */
 export function useAuth(options: UseAuthOptions = {}) {
-  const { redirectTo = "/login", requiredRoles = ["user", "admin"] } = options;
+  const { redirectTo = "/login", requiredRoles = ["admin", "employee"] } =
+    options;
   const { user, isAuthenticated, isLoading } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
@@ -51,9 +52,9 @@ export function useAuth(options: UseAuthOptions = {}) {
     user,
     isAuthenticated,
     isLoading,
-    hasRole: (role: "user" | "admin") => user?.role === role,
+    hasRole: (role: "admin" | "employee") => user?.role === role,
     isAdmin: user?.role === "admin",
-    isUser: user?.role === "user",
+    isEmployee: user?.role === "employee",
   };
 }
 
@@ -68,7 +69,7 @@ export function useAdminAuth() {
  * Hook for user access (includes admin)
  */
 export function useUserAuth() {
-  return useAuth({ requiredRoles: ["user", "admin"] });
+  return useAuth({ requiredRoles: ["employee", "admin"] });
 }
 
 /**
@@ -81,12 +82,12 @@ export function useRouteAccess(pathname: string) {
     if (!isAuthenticated || !user) return false;
 
     // Define route access rules
-    const routeRules: Record<string, ("user" | "admin")[]> = {
-      "/expenses": ["user", "admin"],
-      "/approvals": ["user", "admin"],
+    const routeRules: Record<string, ("employee" | "admin")[]> = {
+      "/expenses": ["employee", "admin"],
+      "/approvals": ["employee", "admin"],
       "/admin": ["admin"],
-      "/profile": ["user", "admin"],
-      "/reports": ["user", "admin"],
+      "/profile": ["employee", "admin"],
+      "/reports": ["employee", "admin"],
     };
 
     for (const [route, allowedRoles] of Object.entries(routeRules)) {

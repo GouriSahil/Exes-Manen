@@ -6,14 +6,14 @@ import { useAuthStore } from "@/stores";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRoles?: ("user" | "admin")[];
+  requiredRoles?: ("admin" | "employee")[];
   fallback?: React.ReactNode;
   redirectTo?: string;
 }
 
 export default function ProtectedRoute({
   children,
-  requiredRoles = ["user", "admin"],
+  requiredRoles = ["admin", "employee"],
   fallback = null,
   redirectTo = "/login",
 }: ProtectedRouteProps) {
@@ -100,7 +100,7 @@ export function UserOnly({
   fallback?: React.ReactNode;
 }) {
   return (
-    <ProtectedRoute requiredRoles={["user", "admin"]} fallback={fallback}>
+    <ProtectedRoute requiredRoles={["employee", "admin"]} fallback={fallback}>
       {children}
     </ProtectedRoute>
   );
