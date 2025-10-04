@@ -295,7 +295,12 @@ export default function SignupPage() {
                 searchable
                 size="md"
               />
-              {formData.country && !countriesLoading && (
+              {countriesError && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  ⚠️ Failed to load countries. Please refresh the page.
+                </p>
+              )}
+              {formData.country && !countriesLoading && !countriesError && (
                 <p className="mt-2 text-sm text-muted-foreground">
                   {(() => {
                     const country = countries?.find(
