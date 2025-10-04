@@ -4,7 +4,7 @@ Run the Flask development server
 """
 
 import os
-from app import app
+from app.main import app
 
 if __name__ == "__main__":
     # Check if DATABASE_URL is set

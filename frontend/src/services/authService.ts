@@ -111,6 +111,7 @@ class AuthService {
         ...defaultHeaders,
         ...options.headers,
       },
+      body: options.body ? JSON.stringify(options.body) : undefined,
     };
 
     try {
