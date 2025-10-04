@@ -92,7 +92,7 @@ class AuthService {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: Omit<RequestInit, "body"> & { body?: any } = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
 
@@ -155,7 +155,7 @@ class AuthService {
   async register(data: RegisterRequest): Promise<RegisterResponse> {
     const response = await this.request<RegisterResponse>("/register", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: data,
     });
 
     // Store tokens
@@ -170,7 +170,7 @@ class AuthService {
   async login(data: LoginRequest): Promise<LoginResponse> {
     const response = await this.request<LoginResponse>("/login", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: data,
     });
 
     // Store tokens
@@ -234,7 +234,7 @@ class AuthService {
   }): Promise<{ message: string }> {
     return this.request<{ message: string }>("/change-password", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: data,
     });
   }
 
@@ -264,7 +264,7 @@ class AuthService {
   ): Promise<CreateEmployeeResponse> {
     return this.request<CreateEmployeeResponse>("/admin/create-employee", {
       method: "POST",
-      body: JSON.stringify(data),
+      body: data,
     });
   }
 
@@ -310,7 +310,7 @@ class AuthService {
   }> {
     return this.request(`/admin/employees/${employeeId}/reset-password`, {
       method: "POST",
-      body: JSON.stringify({ new_password: newPassword }),
+      body: { new_password: newPassword },
     });
   }
 
