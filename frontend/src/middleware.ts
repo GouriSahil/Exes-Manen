@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -33,20 +33,16 @@ export function middleware(request: NextRequest) {
   // If has token and on auth pages, check role and redirect appropriately
   if (accessToken && isAuthRoute) {
     try {
-      // Decode JWT to get user info (basic decode, not verification)
-      const payload = JSON.parse(
-        Buffer.from(accessToken.split(".")[1], "base64").toString()
-      );
-
-      // Get user role from localStorage or cookie
-      // Note: In production, you should fetch this from the server
-      const userRole = request.cookies.get("user_role")?.value;
-
-      // Redirect authenticated users based on role
-      if (userRole === "admin") {
-        return NextResponse.redirect(new URL("/admin", request.url));
-      } else {
-        return NextResponse.redirect(new URL("/expenses", request.url));
+      if (pathname === "/login" || pathname === "/signup" || pathname === "/") {
+        const payload = JSON.parse(
+          Buffer.from(accessToken.split(".")[1], "base64").toString()
+        );
+        const userRole = payload.role;
+        if (userRole === "admin") {
+          return NextResponse.redirect(new URL("/admin", request.url));
+        } else {
+          return NextResponse.redirect(new URL("/expenses", request.url));
+        }
       }
     } catch (error) {
       // If token is invalid, let them through to login
