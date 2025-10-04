@@ -348,8 +348,13 @@ def create_employee():
     """Create employee credentials (admin only)"""
     try:
         user_id = get_jwt_identity()
+        print(f"DEBUG: JWT Identity: {user_id}")
         admin_user = User.query.filter_by(id=user_id).first()
+        print(f"DEBUG: Admin user found: {admin_user}")
+        if admin_user:
+            print(f"DEBUG: Admin user role: {admin_user.role}")
         data = request.get_json()
+        print(f"DEBUG: Request data: {data}")
         
         # Validate required fields
         required_fields = ['email', 'name']
