@@ -7,215 +7,120 @@ export interface Country {
   flag: string;
   currency: string;
   currencySymbol: string;
-  phoneCode: string;
-  region: string;
-  subregion: string;
-  capital: string;
-  population: number;
-  area: number;
-  languages: string[];
-  timezones: string[];
 }
 
-// Mock data - replace with actual API calls
-const mockCountries: Country[] = [
-  {
-    code: 'US',
-    name: 'United States',
-    flag: '🇺🇸',
-    currency: 'USD',
-    currencySymbol: '$',
-    phoneCode: '+1',
-    region: 'Americas',
-    subregion: 'North America',
-    capital: 'Washington, D.C.',
-    population: 331002651,
-    area: 9833517,
-    languages: ['English'],
-    timezones: [
-      'UTC-12:00',
-      'UTC-11:00',
-      'UTC-10:00',
-      'UTC-09:00',
-      'UTC-08:00',
-      'UTC-07:00',
-      'UTC-06:00',
-      'UTC-05:00',
-      'UTC-04:00',
-    ],
-  },
-  {
-    code: 'GB',
-    name: 'United Kingdom',
-    flag: '🇬🇧',
-    currency: 'GBP',
-    currencySymbol: '£',
-    phoneCode: '+44',
-    region: 'Europe',
-    subregion: 'Northern Europe',
-    capital: 'London',
-    population: 67886011,
-    area: 242900,
-    languages: ['English'],
-    timezones: ['UTC+00:00', 'UTC+01:00'],
-  },
-  {
-    code: 'DE',
-    name: 'Germany',
-    flag: '🇩🇪',
-    currency: 'EUR',
-    currencySymbol: '€',
-    phoneCode: '+49',
-    region: 'Europe',
-    subregion: 'Western Europe',
-    capital: 'Berlin',
-    population: 83783942,
-    area: 357114,
-    languages: ['German'],
-    timezones: ['UTC+01:00', 'UTC+02:00'],
-  },
-  {
-    code: 'FR',
-    name: 'France',
-    flag: '🇫🇷',
-    currency: 'EUR',
-    currencySymbol: '€',
-    phoneCode: '+33',
-    region: 'Europe',
-    subregion: 'Western Europe',
-    capital: 'Paris',
-    population: 65273511,
-    area: 551695,
-    languages: ['French'],
-    timezones: ['UTC+01:00', 'UTC+02:00'],
-  },
-  {
-    code: 'JP',
-    name: 'Japan',
-    flag: '🇯🇵',
-    currency: 'JPY',
-    currencySymbol: '¥',
-    phoneCode: '+81',
-    region: 'Asia',
-    subregion: 'Eastern Asia',
-    capital: 'Tokyo',
-    population: 126476461,
-    area: 377975,
-    languages: ['Japanese'],
-    timezones: ['UTC+09:00'],
-  },
-  {
-    code: 'CN',
-    name: 'China',
-    flag: '🇨🇳',
-    currency: 'CNY',
-    currencySymbol: '¥',
-    phoneCode: '+86',
-    region: 'Asia',
-    subregion: 'Eastern Asia',
-    capital: 'Beijing',
-    population: 1439323776,
-    area: 9596961,
-    languages: ['Chinese'],
-    timezones: ['UTC+08:00'],
-  },
-  {
-    code: 'IN',
-    name: 'India',
-    flag: '🇮🇳',
-    currency: 'INR',
-    currencySymbol: '₹',
-    phoneCode: '+91',
-    region: 'Asia',
-    subregion: 'Southern Asia',
-    capital: 'New Delhi',
-    population: 1380004385,
-    area: 3287590,
-    languages: ['Hindi', 'English'],
-    timezones: ['UTC+05:30'],
-  },
-  {
-    code: 'BR',
-    name: 'Brazil',
-    flag: '🇧🇷',
-    currency: 'BRL',
-    currencySymbol: 'R$',
-    phoneCode: '+55',
-    region: 'Americas',
-    subregion: 'South America',
-    capital: 'Brasília',
-    population: 212559417,
-    area: 8515767,
-    languages: ['Portuguese'],
-    timezones: ['UTC-05:00', 'UTC-04:00', 'UTC-03:00', 'UTC-02:00'],
-  },
-  {
-    code: 'AU',
-    name: 'Australia',
-    flag: '🇦🇺',
-    currency: 'AUD',
-    currencySymbol: 'A$',
-    phoneCode: '+61',
-    region: 'Oceania',
-    subregion: 'Australia and New Zealand',
-    capital: 'Canberra',
-    population: 25499884,
-    area: 7692024,
-    languages: ['English'],
-    timezones: [
-      'UTC+08:00',
-      'UTC+09:30',
-      'UTC+10:00',
-      'UTC+10:30',
-      'UTC+11:00',
-    ],
-  },
-  {
-    code: 'CA',
-    name: 'Canada',
-    flag: '🇨🇦',
-    currency: 'CAD',
-    currencySymbol: 'C$',
-    phoneCode: '+1',
-    region: 'Americas',
-    subregion: 'North America',
-    capital: 'Ottawa',
-    population: 37742154,
-    area: 9984670,
-    languages: ['English', 'French'],
-    timezones: [
-      'UTC-08:00',
-      'UTC-07:00',
-      'UTC-06:00',
-      'UTC-05:00',
-      'UTC-04:00',
-      'UTC-03:30',
-    ],
-  },
-];
+// REST Countries API Response Types (simplified)
+interface RestCountryResponse {
+  name: {
+    common: string;
+  };
+  currencies?: Record<string, { name: string; symbol: string }>;
+  cca2?: string;
+}
 
-// Mock API functions
+// Flag emoji generation from country code
+const getFlagEmoji = (countryCode: string): string => {
+  if (!countryCode || countryCode.length !== 2) return "🏳️";
+  const codePoints = countryCode
+    .toUpperCase()
+    .split("")
+    .map((char) => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+};
+
+// Transform REST Countries API response to our Country interface
+const transformCountry = (country: RestCountryResponse): Country => {
+  const currencyCode = country.currencies
+    ? Object.keys(country.currencies)[0]
+    : "USD";
+  const currencyInfo = country.currencies?.[currencyCode];
+
+  return {
+    code: country.cca2 || "",
+    name: country.name?.common || "Unknown",
+    flag: getFlagEmoji(country.cca2 || ""),
+    currency: currencyCode,
+    currencySymbol: currencyInfo?.symbol || "$",
+  };
+};
+
+// Fetch countries from REST Countries API
 const fetchCountries = async (): Promise<Country[]> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return mockCountries;
+  try {
+    const response = await fetch(
+      "https://restcountries.com/v3.1/all?fields=name,currencies,cca2"
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data: RestCountryResponse[] = await response.json();
+
+    console.log("Fetched countries:", data.length);
+
+    // Transform and sort countries alphabetically by name
+    const countries = data
+      .map(transformCountry)
+      .filter((country) => country.code && country.name) // Filter out invalid entries
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return countries;
+  } catch (error) {
+    console.error("Error fetching countries:", error);
+    console.error(
+      "Error details:",
+      error instanceof Error ? error.message : String(error)
+    );
+    throw error;
+  }
 };
 
+// Fetch a single country by code
 const fetchCountryByCode = async (code: string): Promise<Country | null> => {
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  return mockCountries.find((country) => country.code === code) || null;
+  try {
+    const response = await fetch(
+      `https://restcountries.com/v3.1/alpha/${code}?fields=name,currencies,cca2`
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data: RestCountryResponse[] = await response.json();
+    return data.length > 0 ? transformCountry(data[0]) : null;
+  } catch (error) {
+    console.error("Error fetching country:", error);
+    return null;
+  }
 };
 
+// Search countries by name
 const searchCountries = async (query: string): Promise<Country[]> => {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  if (!query.trim()) return mockCountries;
+  try {
+    if (!query.trim()) {
+      return fetchCountries();
+    }
 
-  return mockCountries.filter(
-    (country) =>
-      country.name.toLowerCase().includes(query.toLowerCase()) ||
-      country.code.toLowerCase().includes(query.toLowerCase()) ||
-      country.currency.toLowerCase().includes(query.toLowerCase())
-  );
+    const response = await fetch(
+      `https://restcountries.com/v3.1/name/${encodeURIComponent(
+        query
+      )}?fields=name,currencies,cca2`
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data: RestCountryResponse[] = await response.json();
+    return data
+      .map(transformCountry)
+      .filter((country) => country.code && country.name)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  } catch (error) {
+    console.error("Error searching countries:", error);
+    return [];
+  }
 };
 
 // Custom hooks
@@ -224,6 +129,8 @@ export const useCountries = () => {
     queryKey: queryKeys.countries.lists(),
     queryFn: fetchCountries,
     staleTime: 10 * 60 * 1000, // 10 minutes
+    retry: 3, // Retry failed requests 3 times
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
   });
 };
 
@@ -245,14 +152,58 @@ export const useSearchCountries = (query: string) => {
 };
 
 // Utility functions
-export const getCountryByCode = (code: string): Country | undefined => {
-  return mockCountries.find((country) => country.code === code);
+export const getCountryByCode = async (
+  code: string
+): Promise<Country | null> => {
+  return fetchCountryByCode(code);
 };
 
-export const getCountriesByRegion = (region: string): Country[] => {
-  return mockCountries.filter((country) => country.region === region);
+export const getCountriesByRegion = async (
+  region: string
+): Promise<Country[]> => {
+  try {
+    const response = await fetch(
+      `https://restcountries.com/v3.1/region/${encodeURIComponent(
+        region
+      )}?fields=name,currencies,cca2`
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data: RestCountryResponse[] = await response.json();
+    return data
+      .map(transformCountry)
+      .filter((country) => country.code && country.name)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  } catch (error) {
+    console.error("Error fetching countries by region:", error);
+    return [];
+  }
 };
 
-export const getCountriesByCurrency = (currency: string): Country[] => {
-  return mockCountries.filter((country) => country.currency === currency);
+export const getCountriesByCurrency = async (
+  currency: string
+): Promise<Country[]> => {
+  try {
+    const response = await fetch(
+      `https://restcountries.com/v3.1/currency/${encodeURIComponent(
+        currency
+      )}?fields=name,currencies,cca2`
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data: RestCountryResponse[] = await response.json();
+    return data
+      .map(transformCountry)
+      .filter((country) => country.code && country.name)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  } catch (error) {
+    console.error("Error fetching countries by currency:", error);
+    return [];
+  }
 };
