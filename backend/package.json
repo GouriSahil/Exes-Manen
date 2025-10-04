@@ -1,14 +1,21 @@
 {
   "name": "@exes-manen/backend",
   "version": "1.0.0",
-  "description": "Python backend for Exes Manen",
+  "description": "Flask backend for Exes Manen",
   "private": true,
   "scripts": {
-    "dev": "source venv/bin/activate && python main.py",
+    "dev": "source venv/bin/activate && python run_server.py",
+    "start": "source venv/bin/activate && python run_server.py",
     "install": "source venv/bin/activate && pip install -r requirements.txt",
     "build": "source venv/bin/activate && pip install -r requirements.txt",
     "clean": "rm -rf venv __pycache__ *.pyc",
-    "activate": "source venv/bin/activate"
+    "activate": "source venv/bin/activate",
+    "test": "source venv/bin/activate && python -m pytest",
+    "lint": "source venv/bin/activate && flake8 .",
+    "format": "source venv/bin/activate && black .",
+    "db:init": "source venv/bin/activate && python init_db.py",
+    "db:migrate": "source venv/bin/activate && flask db migrate",
+    "db:upgrade": "source venv/bin/activate && flask db upgrade"
   },
   "type": "module"
 }
