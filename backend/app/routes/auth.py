@@ -12,6 +12,12 @@ import re
 
 from .. import db, bcrypt
 from ..models import User, Company, UserRoleEnum
+from ..email_service import (
+    send_welcome_email, 
+    send_password_reset_email, 
+    send_organization_welcome_email,
+    generate_temp_password
+)
 
 # Create a blueprint for auth routes
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
@@ -96,6 +102,17 @@ def register():
         company.owner_id = user.id
         
         db.session.commit()
+        
+        # Send welcome email to organization admin
+        try:
+            send_organization_welcome_email(
+                admin_email=user.email,
+                admin_name=user.name,
+                organization_name=company.name
+            )
+        except Exception as email_error:
+            # Log email error but don't fail the registration
+            print(f"Failed to send welcome email: {email_error}")
         
         # Generate access token
         access_token = create_access_token(identity=str(user.id))
@@ -335,7 +352,7 @@ def create_employee():
         data = request.get_json()
         
         # Validate required fields
-        required_fields = ['email', 'name', 'password']
+        required_fields = ['email', 'name']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({"error": f"{field} is required"}), 400
@@ -344,18 +361,16 @@ def create_employee():
         if not validate_email(data['email']):
             return jsonify({"error": "Invalid email format"}), 400
         
-        # Validate password strength
-        is_valid_password, password_message = validate_password(data['password'])
-        if not is_valid_password:
-            return jsonify({"error": password_message}), 400
-        
         # Check if user already exists
         existing_user = User.query.filter_by(email=data['email']).first()
         if existing_user:
             return jsonify({"error": "User with this email already exists"}), 409
         
+        # Generate temporary password
+        temp_password = generate_temp_password()
+        
         # Hash password
-        hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+        hashed_password = bcrypt.generate_password_hash(temp_password).decode('utf-8')
         
         # Create new employee user
         employee = User(
@@ -370,6 +385,18 @@ def create_employee():
         
         db.session.add(employee)
         db.session.commit()
+        
+        # Send welcome email to new employee
+        try:
+            send_welcome_email(
+                employee_email=employee.email,
+                employee_name=employee.name,
+                organization_name=admin_user.company.name,
+                temp_password=temp_password
+            )
+        except Exception as email_error:
+            # Log email error but don't fail the employee creation
+            print(f"Failed to send welcome email: {email_error}")
         
         return jsonify({
             "message": "Employee created successfully",
@@ -492,6 +519,18 @@ def reset_employee_password(employee_id):
         # Update password
         employee.password_hash = new_hashed_password
         db.session.commit()
+        
+        # Send password reset email to employee
+        try:
+            send_password_reset_email(
+                employee_email=employee.email,
+                employee_name=employee.name,
+                organization_name=admin_user.company.name,
+                new_password=data['new_password']
+            )
+        except Exception as email_error:
+            # Log email error but don't fail the password reset
+            print(f"Failed to send password reset email: {email_error}")
         
         return jsonify({
             "message": "Employee password reset successfully",

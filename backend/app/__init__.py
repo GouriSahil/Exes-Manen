@@ -24,4 +24,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "Login"
 
+# Initialize email service
+from .email_service import init_mail
+init_mail(app)
+
 from .models import User
