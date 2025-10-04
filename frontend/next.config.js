@@ -8,14 +8,7 @@ const nextConfig = {
       },
     ];
   },
-  allowedDevOrigins: [
-    "http://localhost:3000",
-    "http://localhost:8000",
-    "http://0.0.0.0:3000",
-    "http://0.0.0.0:8000",
-    "http://192.168.29.141:3000",
-    "http://192.168.29.141:8000",
-  ],
+  allowedDevOrigins: ["0.0.0.0", "192.168.29.141"],
   serverExternalPackages: ["pg", "drizzle-orm"],
   webpack: (config, { isServer }) => {
     if (isServer) {
