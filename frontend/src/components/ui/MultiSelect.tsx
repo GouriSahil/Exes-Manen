@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { SelectOption } from "./CustomSelect";
 
 interface MultiSelectProps {
@@ -41,6 +41,7 @@ export default function MultiSelect({
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const selectRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownId = useId();
 
   const selectedOptions = options.filter((option) =>
     value.includes(option.value)
@@ -256,6 +257,7 @@ export default function MultiSelect({
         tabIndex={disabled ? -1 : 0}
         role="combobox"
         aria-expanded={isOpen}
+        aria-controls={dropdownId}
         aria-haspopup="listbox"
         aria-label={label || placeholder}
       >
@@ -321,7 +323,10 @@ export default function MultiSelect({
 
         {/* Dropdown */}
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-hidden">
+          <div 
+            id={dropdownId}
+            role="listbox"
+            className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-hidden">
             <div className="overflow-y-auto max-h-60">
               {filteredOptions.length === 0 ? (
                 <div className="px-4 py-3 text-sm text-muted-foreground text-center">
