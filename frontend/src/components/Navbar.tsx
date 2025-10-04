@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useTheme } from "./ThemeProvider";
+import { useAuthStore } from "@/stores";
 
 export default function Navbar() {
   const { theme, toggleTheme, mounted } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuthStore();
 
   return (
     <nav className="fixed top-0 w-full z-50 glass border-b border-border/50">
@@ -33,32 +35,36 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/expenses"
-              className="text-foreground/80 hover:text-foreground transition-colors font-medium"
-            >
-              My Expenses
-            </Link>
-            <Link
-              href="/approvals"
-              className="text-foreground/80 hover:text-foreground transition-colors font-medium"
-            >
-              Approvals
-            </Link>
-            <Link
-              href="/admin"
-              className="text-foreground/80 hover:text-foreground transition-colors font-medium"
-            >
-              Admin
-            </Link>
-            <Link
-              href="/reports"
-              className="text-foreground/80 hover:text-foreground transition-colors font-medium"
-            >
-              Reports
-            </Link>
-          </div>
+          {isAuthenticated && (
+            <div className="hidden md:flex items-center space-x-8">
+              <Link
+                href="/expenses"
+                className="text-foreground/80 hover:text-foreground transition-colors font-medium"
+              >
+                My Expenses
+              </Link>
+              <Link
+                href="/approvals"
+                className="text-foreground/80 hover:text-foreground transition-colors font-medium"
+              >
+                Approvals
+              </Link>
+              {user?.role === "admin" && (
+                <Link
+                  href="/admin"
+                  className="text-foreground/80 hover:text-foreground transition-colors font-medium"
+                >
+                  Admin
+                </Link>
+              )}
+              <Link
+                href="/reports"
+                className="text-foreground/80 hover:text-foreground transition-colors font-medium"
+              >
+                Reports
+              </Link>
+            </div>
+          )}
 
           <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Mobile Menu Button */}
@@ -131,20 +137,31 @@ export default function Navbar() {
             )}
 
             {/* Desktop Profile Link */}
-            <Link
-              href="/profile"
-              className="hidden sm:block text-foreground hover:text-primary-600 transition-colors font-medium"
-            >
-              Profile
-            </Link>
+            {isAuthenticated && (
+              <Link
+                href="/profile"
+                className="hidden sm:block text-foreground hover:text-primary-600 transition-colors font-medium"
+              >
+                {user?.name || "Profile"}
+              </Link>
+            )}
 
-            {/* Desktop Logout Button */}
-            <Link
-              href="/logout"
-              className="hidden md:block px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg sm:rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base"
-            >
-              Logout
-            </Link>
+            {/* Desktop Auth Buttons */}
+            {isAuthenticated ? (
+              <button
+                onClick={logout}
+                className="hidden md:block px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg sm:rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base"
+              >
+                Logout
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden md:block px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg sm:rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base"
+              >
+                Login
+              </Link>
+            )}
           </div>
         </div>
 
@@ -152,46 +169,54 @@ export default function Navbar() {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl">
             <div className="px-4 py-4 space-y-4">
-              {/* Navigation Links */}
-              <Link
-                href="/expenses"
-                className="block text-foreground/80 hover:text-foreground transition-colors font-medium py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                My Expenses
-              </Link>
-              <Link
-                href="/approvals"
-                className="block text-foreground/80 hover:text-foreground transition-colors font-medium py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Approvals
-              </Link>
-              <Link
-                href="/admin"
-                className="block text-foreground/80 hover:text-foreground transition-colors font-medium py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Admin
-              </Link>
-              <Link
-                href="/reports"
-                className="block text-foreground/80 hover:text-foreground transition-colors font-medium py-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Reports
-              </Link>
+              {/* Navigation Links - Only show when authenticated */}
+              {isAuthenticated && (
+                <>
+                  <Link
+                    href="/expenses"
+                    className="block text-foreground/80 hover:text-foreground transition-colors font-medium py-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    My Expenses
+                  </Link>
+                  <Link
+                    href="/approvals"
+                    className="block text-foreground/80 hover:text-foreground transition-colors font-medium py-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Approvals
+                  </Link>
+                  {user?.role === "admin" && (
+                    <Link
+                      href="/admin"
+                      className="block text-foreground/80 hover:text-foreground transition-colors font-medium py-2"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Admin
+                    </Link>
+                  )}
+                  <Link
+                    href="/reports"
+                    className="block text-foreground/80 hover:text-foreground transition-colors font-medium py-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Reports
+                  </Link>
+                </>
+              )}
 
-              {/* Separator */}
-              <div className="border-t border-border/50 pt-4">
-                <Link
-                  href="/profile"
-                  className="block text-foreground/80 hover:text-foreground transition-colors font-medium py-2"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Profile
-                </Link>
-              </div>
+              {/* Profile Section - Only show when authenticated */}
+              {isAuthenticated && (
+                <div className="border-t border-border/50 pt-4">
+                  <Link
+                    href="/profile"
+                    className="block text-foreground/80 hover:text-foreground transition-colors font-medium py-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {user?.name || "Profile"}
+                  </Link>
+                </div>
+              )}
 
               {/* Theme Toggle */}
               {mounted && (
@@ -241,22 +266,36 @@ export default function Navbar() {
                 </div>
               )}
 
-              {/* Login/Logout Buttons */}
+              {/* Auth Buttons */}
               <div className="border-t border-border/50 pt-4 space-y-3">
-                <Link
-                  href="/login"
-                  className="block w-full text-center px-4 py-2 text-foreground hover:text-primary-600 transition-colors font-medium border border-border rounded-lg hover:border-primary-500"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/logout"
-                  className="block w-full text-center px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Logout
-                </Link>
+                {isAuthenticated ? (
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="block w-full text-center px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="block w-full text-center px-4 py-2 text-foreground hover:text-primary-600 transition-colors font-medium border border-border rounded-lg hover:border-primary-500"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/signup"
+                      className="block w-full text-center px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Sign Up
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

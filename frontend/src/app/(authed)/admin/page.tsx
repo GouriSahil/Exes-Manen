@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Employee, Role, Team } from "@/types/employee";
+import ProtectedRoute from "../../../components/ProtectedRoute";
 import { generateRandomPassword } from "@/utils/password";
 import { getCurrentDateString } from "@/utils/date";
 import {
@@ -316,188 +317,190 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/30 to-secondary-50/30 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-900 pt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">
-            Organization Admin
-          </h1>
-          <p className="text-muted-foreground">
-            Manage employees, roles, and organizational settings.
-          </p>
-        </div>
+    <ProtectedRoute requiredRoles={["admin"]}>
+      <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-primary-50/30 to-secondary-50/30 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-900 pt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Page Header */}
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-foreground mb-2">
+              Organization Admin
+            </h1>
+            <p className="text-muted-foreground">
+              Manage employees, roles, and organizational settings.
+            </p>
+          </div>
 
-        {/* Summary Stats */}
-        <SummaryStats employees={employees} roles={roles} teams={teams} />
+          {/* Summary Stats */}
+          <SummaryStats employees={employees} roles={roles} teams={teams} />
 
-        {/* Password Reset Notification */}
-        <PasswordResetNotification
-          isVisible={showResetPasswordInfo}
-          employee={resetPasswordEmployee}
-          generatedPassword={generatedPassword}
-          onDismiss={() => {
-            setShowResetPasswordInfo(false);
-            setResetPasswordEmployee(null);
-            setGeneratedPassword("");
-          }}
-        />
+          {/* Password Reset Notification */}
+          <PasswordResetNotification
+            isVisible={showResetPasswordInfo}
+            employee={resetPasswordEmployee}
+            generatedPassword={generatedPassword}
+            onDismiss={() => {
+              setShowResetPasswordInfo(false);
+              setResetPasswordEmployee(null);
+              setGeneratedPassword("");
+            }}
+          />
 
-        {/* Tabs */}
-        <div className="card p-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex space-x-1 bg-muted p-1 rounded-lg">
+          {/* Tabs */}
+          <div className="card p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex space-x-1 bg-muted p-1 rounded-lg">
+                <button
+                  onClick={() => setActiveTab("employees")}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === "employees"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Employees
+                </button>
+                <button
+                  onClick={() => setActiveTab("roles")}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === "roles"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Roles
+                </button>
+                <button
+                  onClick={() => setActiveTab("teams")}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === "teams"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Teams
+                </button>
+              </div>
+
               <button
-                onClick={() => setActiveTab("employees")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === "employees"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
+                onClick={() => {
+                  if (activeTab === "employees") {
+                    handleAddEmployee();
+                  } else if (activeTab === "roles") {
+                    handleAddRole();
+                  } else {
+                    handleAddTeam();
+                  }
+                }}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
               >
-                Employees
-              </button>
-              <button
-                onClick={() => setActiveTab("roles")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === "roles"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Roles
-              </button>
-              <button
-                onClick={() => setActiveTab("teams")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === "teams"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Teams
+                {activeTab === "employees"
+                  ? "Add Employee"
+                  : activeTab === "roles"
+                  ? "Create Role"
+                  : "Create Team"}
               </button>
             </div>
 
-            <button
-              onClick={() => {
-                if (activeTab === "employees") {
-                  handleAddEmployee();
-                } else if (activeTab === "roles") {
-                  handleAddRole();
-                } else {
-                  handleAddTeam();
-                }
-              }}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
-            >
-              {activeTab === "employees"
-                ? "Add Employee"
-                : activeTab === "roles"
-                ? "Create Role"
-                : "Create Team"}
-            </button>
+            {/* Tab Content */}
+            {activeTab === "employees" && (
+              <EmployeeTable
+                employees={employees}
+                isProcessing={isProcessing}
+                onEditEmployee={handleEditEmployee}
+                onResetPassword={handleResetPassword}
+                onDeleteEmployee={handleDeleteEmployee}
+              />
+            )}
+
+            {activeTab === "roles" && (
+              <RoleTable
+                roles={roles}
+                isProcessing={isProcessing}
+                onEditRole={handleEditRole}
+                onDeleteRole={handleDeleteRole}
+              />
+            )}
+
+            {activeTab === "teams" && (
+              <TeamTable
+                teams={teams}
+                isProcessing={isProcessing}
+                onEditTeam={handleEditTeam}
+                onDeleteTeam={handleDeleteTeam}
+              />
+            )}
           </div>
 
-          {/* Tab Content */}
-          {activeTab === "employees" && (
-            <EmployeeTable
-              employees={employees}
-              isProcessing={isProcessing}
-              onEditEmployee={handleEditEmployee}
-              onResetPassword={handleResetPassword}
-              onDeleteEmployee={handleDeleteEmployee}
-            />
-          )}
+          {/* Modals */}
+          <EmployeeModal
+            isOpen={showEmployeeModal}
+            onClose={() => {
+              setShowEmployeeModal(false);
+              setEditingEmployee(null);
+            }}
+            employee={editingEmployee}
+            roles={roles}
+            onSave={handleSaveEmployee}
+            isProcessing={isProcessing}
+          />
 
-          {activeTab === "roles" && (
-            <RoleTable
-              roles={roles}
-              isProcessing={isProcessing}
-              onEditRole={handleEditRole}
-              onDeleteRole={handleDeleteRole}
-            />
-          )}
+          <RoleModal
+            isOpen={showRoleModal}
+            onClose={() => {
+              setShowRoleModal(false);
+              setEditingRole(null);
+            }}
+            role={editingRole}
+            onSave={handleSaveRole}
+            isProcessing={isProcessing}
+          />
 
-          {activeTab === "teams" && (
-            <TeamTable
-              teams={teams}
-              isProcessing={isProcessing}
-              onEditTeam={handleEditTeam}
-              onDeleteTeam={handleDeleteTeam}
-            />
-          )}
+          <TeamModal
+            isOpen={showTeamModal}
+            onClose={() => {
+              setShowTeamModal(false);
+              setEditingTeam(null);
+            }}
+            team={editingTeam}
+            employees={employees}
+            onSave={handleSaveTeam}
+            isProcessing={isProcessing}
+          />
+
+          <PasswordResetModal
+            isOpen={showResetPasswordConfirmModal}
+            employee={employeeToReset}
+            isProcessing={isProcessing}
+            onConfirm={confirmResetPassword}
+            onCancel={() => {
+              setShowResetPasswordConfirmModal(false);
+              setEmployeeToReset(null);
+            }}
+          />
+
+          <DeleteConfirmModal
+            isOpen={showDeleteModal}
+            onClose={() => {
+              setShowDeleteModal(false);
+              setDeleteItem(null);
+            }}
+            onConfirm={confirmDelete}
+            title={`Delete ${
+              deleteItem?.type === "employee"
+                ? "Employee"
+                : deleteItem?.type === "role"
+                ? "Role"
+                : "Team"
+            }`}
+            message={`Are you sure you want to delete this ${deleteItem?.type}?`}
+            itemName={deleteItem?.name}
+            isProcessing={isProcessing}
+            confirmButtonText="Delete"
+            cancelButtonText="Cancel"
+            variant="danger"
+          />
         </div>
-
-        {/* Modals */}
-        <EmployeeModal
-          isOpen={showEmployeeModal}
-          onClose={() => {
-            setShowEmployeeModal(false);
-            setEditingEmployee(null);
-          }}
-          employee={editingEmployee}
-          roles={roles}
-          onSave={handleSaveEmployee}
-          isProcessing={isProcessing}
-        />
-
-        <RoleModal
-          isOpen={showRoleModal}
-          onClose={() => {
-            setShowRoleModal(false);
-            setEditingRole(null);
-          }}
-          role={editingRole}
-          onSave={handleSaveRole}
-          isProcessing={isProcessing}
-        />
-
-        <TeamModal
-          isOpen={showTeamModal}
-          onClose={() => {
-            setShowTeamModal(false);
-            setEditingTeam(null);
-          }}
-          team={editingTeam}
-          employees={employees}
-          onSave={handleSaveTeam}
-          isProcessing={isProcessing}
-        />
-
-        <PasswordResetModal
-          isOpen={showResetPasswordConfirmModal}
-          employee={employeeToReset}
-          isProcessing={isProcessing}
-          onConfirm={confirmResetPassword}
-          onCancel={() => {
-            setShowResetPasswordConfirmModal(false);
-            setEmployeeToReset(null);
-          }}
-        />
-
-        <DeleteConfirmModal
-          isOpen={showDeleteModal}
-          onClose={() => {
-            setShowDeleteModal(false);
-            setDeleteItem(null);
-          }}
-          onConfirm={confirmDelete}
-          title={`Delete ${
-            deleteItem?.type === "employee"
-              ? "Employee"
-              : deleteItem?.type === "role"
-              ? "Role"
-              : "Team"
-          }`}
-          message={`Are you sure you want to delete this ${deleteItem?.type}?`}
-          itemName={deleteItem?.name}
-          isProcessing={isProcessing}
-          confirmButtonText="Delete"
-          cancelButtonText="Cancel"
-          variant="danger"
-        />
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }
