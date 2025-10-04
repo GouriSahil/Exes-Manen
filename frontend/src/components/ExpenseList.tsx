@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatDate } from "@/utils/date";
 
 interface Expense {
   id: string;
@@ -298,7 +299,7 @@ export default function ExpenseList() {
                   </div>
                   <div>
                     <span className="font-medium">Date:</span>{" "}
-                    {new Date(expense.date).toLocaleDateString()}
+                    {formatDate(expense.date)}
                   </div>
                   <div>
                     <span className="font-medium">Paid By:</span>{" "}
@@ -436,7 +437,7 @@ export default function ExpenseList() {
                     </td>
                     <td className="py-4 px-4">
                       <div className="text-foreground">
-                        {new Date(expense.date).toLocaleDateString()}
+                        {formatDate(expense.date)}
                       </div>
                     </td>
                     <td className="py-4 px-4">
