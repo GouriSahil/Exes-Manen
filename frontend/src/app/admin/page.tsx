@@ -667,6 +667,32 @@ The Exes Manen Team
               </div>
             </div>
           </div>
+
+          <div className="card p-6">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-indigo-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <div className="text-2xl font-bold text-foreground">
+                  {teams.length}
+                </div>
+                <div className="text-sm text-muted-foreground">Teams</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -693,17 +719,33 @@ The Exes Manen Team
               >
                 Roles
               </button>
+              <button
+                onClick={() => setActiveTab("teams")}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === "teams"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Teams
+              </button>
             </div>
 
             <button
               onClick={() =>
                 activeTab === "employees"
                   ? openEmployeeModal()
-                  : openRoleModal()
+                  : activeTab === "roles"
+                  ? openRoleModal()
+                  : openTeamModal()
               }
               className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
             >
-              {activeTab === "employees" ? "Add Employee" : "Create Role"}
+              {activeTab === "employees"
+                ? "Add Employee"
+                : activeTab === "roles"
+                ? "Create Role"
+                : "Create Team"}
             </button>
           </div>
 
@@ -880,6 +922,95 @@ The Exes Manen Team
                               Delete
                             </button>
                           )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Teams Tab */}
+          {activeTab === "teams" && (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-3 px-4 font-semibold text-foreground">
+                      Team Name
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-foreground">
+                      Description
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-foreground">
+                      Team Leader
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-foreground">
+                      Department
+                    </th>
+                    <th className="text-center py-3 px-4 font-semibold text-foreground">
+                      Members
+                    </th>
+                    <th className="text-left py-3 px-4 font-semibold text-foreground">
+                      Created
+                    </th>
+                    <th className="text-center py-3 px-4 font-semibold text-foreground">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {teams.map((team) => (
+                    <tr
+                      key={team.id}
+                      className="border-b border-border hover:bg-muted/50 transition-colors"
+                    >
+                      <td className="py-4 px-4">
+                        <div className="font-medium text-foreground">
+                          {team.name}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="text-muted-foreground max-w-xs truncate">
+                          {team.description}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="text-foreground">
+                          {team.teamLeaderName}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="text-muted-foreground">
+                          {team.department}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <div className="text-foreground font-medium">
+                          {team.memberCount}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="text-muted-foreground">
+                          {new Date(team.createdAt).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex justify-center space-x-2">
+                          <button
+                            onClick={() => openTeamModal(team)}
+                            className="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTeam(team.id)}
+                            disabled={isProcessing}
+                            className="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs font-medium"
+                          >
+                            Delete
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1145,6 +1276,165 @@ The Exes Manen Team
                     : editingRole
                     ? "Update Role"
                     : "Create Role"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Team Modal */}
+        {showTeamModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-background rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
+                {editingTeam ? "Edit Team" : "Create New Team"}
+              </h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Team Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={teamForm.name}
+                    onChange={(e) =>
+                      setTeamForm((prev) => ({ ...prev, name: e.target.value }))
+                    }
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-background text-foreground"
+                    placeholder="Enter team name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Description *
+                  </label>
+                  <textarea
+                    value={teamForm.description}
+                    onChange={(e) =>
+                      setTeamForm((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
+                    rows={3}
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-background text-foreground resize-none"
+                    placeholder="Enter team description"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Department *
+                  </label>
+                  <select
+                    value={teamForm.department}
+                    onChange={(e) =>
+                      setTeamForm((prev) => ({
+                        ...prev,
+                        department: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-background text-foreground"
+                  >
+                    <option value="">Select a department</option>
+                    {departments.map((dept) => (
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Team Leader *
+                  </label>
+                  <select
+                    value={teamForm.teamLeader}
+                    onChange={(e) =>
+                      setTeamForm((prev) => ({
+                        ...prev,
+                        teamLeader: e.target.value,
+                      }))
+                    }
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-background text-foreground"
+                  >
+                    <option value="">Select a team leader</option>
+                    {employees
+                      .filter((emp) => emp.status === "active")
+                      .map((employee) => (
+                        <option key={employee.id} value={employee.id}>
+                          {employee.firstName} {employee.lastName} -{" "}
+                          {employee.role}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Team Members
+                  </label>
+                  <div className="max-h-48 overflow-y-auto border border-border rounded-lg p-3">
+                    {employees
+                      .filter((emp) => emp.status === "active")
+                      .map((employee) => (
+                        <label
+                          key={employee.id}
+                          className="flex items-center space-x-2 py-1"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={teamForm.members.includes(employee.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setTeamForm((prev) => ({
+                                  ...prev,
+                                  members: [...prev.members, employee.id],
+                                }));
+                              } else {
+                                setTeamForm((prev) => ({
+                                  ...prev,
+                                  members: prev.members.filter(
+                                    (id) => id !== employee.id
+                                  ),
+                                }));
+                              }
+                            }}
+                            className="rounded border-border text-primary focus:ring-primary"
+                          />
+                          <span className="text-sm text-foreground">
+                            {employee.firstName} {employee.lastName} -{" "}
+                            {employee.role}
+                          </span>
+                        </label>
+                      ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Selected: {teamForm.members.length} members
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowTeamModal(false)}
+                  className="px-4 py-2 border border-border rounded-lg text-foreground hover:bg-muted transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateTeam}
+                  disabled={isProcessing}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessing
+                    ? "Saving..."
+                    : editingTeam
+                    ? "Update Team"
+                    : "Create Team"}
                 </button>
               </div>
             </div>
