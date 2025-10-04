@@ -137,16 +137,37 @@ class AuthService {
     return localStorage.getItem("access_token");
   }
 
-  private setTokens(accessToken: string, refreshToken: string): void {
+  private setTokens(
+    accessToken: string,
+    refreshToken: string,
+    userRole?: string
+  ): void {
     if (typeof window === "undefined") return;
     localStorage.setItem("access_token", accessToken);
     localStorage.setItem("refresh_token", refreshToken);
+
+    // Set cookies for middleware access
+    document.cookie = `access_token=${accessToken}; path=/; max-age=${60 * 15}`; // 15 minutes
+    document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${
+      60 * 60 * 24 * 30
+    }`; // 30 days
+
+    if (userRole) {
+      document.cookie = `user_role=${userRole}; path=/; max-age=${
+        60 * 60 * 24 * 30
+      }`; // 30 days
+    }
   }
 
   private clearTokens(): void {
     if (typeof window === "undefined") return;
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
+
+    // Clear cookies
+    document.cookie = "access_token=; path=/; max-age=0";
+    document.cookie = "refresh_token=; path=/; max-age=0";
+    document.cookie = "user_role=; path=/; max-age=0";
   }
 
   /**
@@ -158,8 +179,12 @@ class AuthService {
       body: data,
     });
 
-    // Store tokens
-    this.setTokens(response.access_token, response.refresh_token);
+    // Store tokens with user role
+    this.setTokens(
+      response.access_token,
+      response.refresh_token,
+      response.user.role
+    );
 
     return response;
   }
@@ -173,8 +198,12 @@ class AuthService {
       body: data,
     });
 
-    // Store tokens
-    this.setTokens(response.access_token, response.refresh_token);
+    // Store tokens with user role
+    this.setTokens(
+      response.access_token,
+      response.refresh_token,
+      response.user.role
+    );
 
     return response;
   }
