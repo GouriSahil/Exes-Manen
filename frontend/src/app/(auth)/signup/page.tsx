@@ -111,7 +111,15 @@ export default function SignupPage() {
         currency_code: currencyCode,
       });
 
-      router.push("/");
+      // Get user from store to check role (organization owner will be admin)
+      const { user } = useAuthStore.getState();
+
+      // Redirect based on role (organization creators are admins)
+      if (user?.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/expenses");
+      }
     } catch (error) {
       console.error("Signup error:", error);
     }
