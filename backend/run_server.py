@@ -19,4 +19,4 @@ if __name__ == "__main__":
     print("🔗 API endpoints available at: http://localhost:8000/api/")
     print()
     
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True, threaded=True)

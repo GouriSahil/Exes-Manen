@@ -3,7 +3,8 @@
  * Handles all authentication-related API calls
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://192.168.29.141:8000";
 
 export interface User {
   id: string;
