@@ -100,6 +100,9 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     last_login = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, nullable=True)
+    
+    # Relationships
+    company = db.relationship('Company', foreign_keys=[company_id], backref='users', lazy=True)
 
 # 7. ApprovalRules
 class ApprovalRule(db.Model):

@@ -22,6 +22,104 @@ from ..email_service import (
 # Create a blueprint for auth routes
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
+def require_admin_role(f):
+    """Decorator to require admin role"""
+    from functools import wraps
+    
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        try:
+            user_id = get_jwt_identity()
+            print(f"DEBUG: require_admin_role - JWT Identity: {user_id}")
+            user = User.query.filter_by(id=user_id).first()
+            print(f"DEBUG: require_admin_role - User found: {user}")
+            
+            if not user:
+                print("DEBUG: require_admin_role - User not found")
+                return jsonify({"error": "User not found"}), 404
+            
+            print(f"DEBUG: require_admin_role - User role: {user.role}")
+            if user.role != UserRoleEnum.admin:
+                print("DEBUG: require_admin_role - User is not admin")
+                return jsonify({"error": "Admin access required"}), 403
+            
+            return f(*args, **kwargs)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    
+    return decorated_function
+
+@auth_bp.route('/test', methods=['GET'])
+def test_endpoint():
+    """Test endpoint to verify server is working"""
+    return jsonify({"message": "Auth endpoint is working", "timestamp": datetime.utcnow().isoformat()}), 200
+
+@auth_bp.route('/test-auth', methods=['GET'])
+@jwt_required()
+def test_auth_endpoint():
+    """Test endpoint to verify JWT authentication is working"""
+    user_id = get_jwt_identity()
+    print(f"DEBUG: test_auth_endpoint - JWT Identity: {user_id}")
+    return jsonify({"message": "JWT authentication is working", "user_id": user_id}), 200
+
+@auth_bp.route('/debug-token', methods=['POST'])
+def debug_token():
+    """Debug endpoint to check token without authentication"""
+    try:
+        auth_header = request.headers.get('Authorization')
+        print(f"DEBUG: Authorization header: {auth_header}")
+        
+        if not auth_header:
+            return jsonify({"error": "No Authorization header"}), 401
+            
+        if not auth_header.startswith('Bearer '):
+            return jsonify({"error": "Invalid Authorization header format"}), 401
+            
+        token = auth_header.split(' ')[1]
+        print(f"DEBUG: Extracted token: {token[:20]}...")
+        
+        # Try to decode the token manually
+        try:
+            from flask_jwt_extended import decode_token
+            decoded = decode_token(token)
+            print(f"DEBUG: Decoded token: {decoded}")
+            return jsonify({"message": "Token decoded successfully", "decoded": decoded}), 200
+        except Exception as decode_error:
+            print(f"DEBUG: Token decode error: {decode_error}")
+            return jsonify({"error": f"Token decode failed: {str(decode_error)}"}), 401
+            
+    except Exception as e:
+        print(f"DEBUG: Debug token error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@auth_bp.route('/test-email', methods=['POST'])
+@jwt_required()
+@require_admin_role
+def test_email():
+    """Test email functionality"""
+    try:
+        user_id = get_jwt_identity()
+        admin_user = User.query.filter_by(id=user_id).first()
+        
+        if not admin_user:
+            return jsonify({"error": "Admin user not found"}), 404
+            
+        # Test sending a simple email
+        test_success = send_organization_welcome_email(
+            admin_email=admin_user.email,
+            admin_name=admin_user.name,
+            organization_name=admin_user.company.name if admin_user.company else "Test Organization"
+        )
+        
+        if test_success:
+            return jsonify({"message": "Test email sent successfully"}), 200
+        else:
+            return jsonify({"error": "Failed to send test email"}), 500
+            
+    except Exception as e:
+        print(f"DEBUG: Test email error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 def validate_email(email):
     """Validate email format"""
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
@@ -324,33 +422,6 @@ def verify_token():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def require_admin_role(f):
-    """Decorator to require admin role"""
-    from functools import wraps
-    
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        try:
-            user_id = get_jwt_identity()
-            print(f"DEBUG: require_admin_role - JWT Identity: {user_id}")
-            user = User.query.filter_by(id=user_id).first()
-            print(f"DEBUG: require_admin_role - User found: {user}")
-            
-            if not user:
-                print("DEBUG: require_admin_role - User not found")
-                return jsonify({"error": "User not found"}), 404
-            
-            print(f"DEBUG: require_admin_role - User role: {user.role}")
-            if user.role != UserRoleEnum.admin:
-                print("DEBUG: require_admin_role - User is not admin")
-                return jsonify({"error": "Admin access required"}), 403
-            
-            return f(*args, **kwargs)
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    
-    return decorated_function
-
 @auth_bp.route('/admin/create-employee', methods=['POST'])
 @jwt_required()
 @require_admin_role
@@ -508,16 +579,7 @@ def reset_employee_password(employee_id):
     try:
         user_id = get_jwt_identity()
         admin_user = User.query.filter_by(id=user_id).first()
-        data = request.get_json()
-        
-        # Validate required fields
-        if not data.get('new_password'):
-            return jsonify({"error": "new_password is required"}), 400
-        
-        # Validate password strength
-        is_valid_password, password_message = validate_password(data['new_password'])
-        if not is_valid_password:
-            return jsonify({"error": password_message}), 400
+        # No need to get data from request - we'll generate password automatically
         
         # Find employee in the same company
         employee = User.query.filter_by(

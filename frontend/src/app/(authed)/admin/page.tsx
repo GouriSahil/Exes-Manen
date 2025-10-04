@@ -71,11 +71,92 @@ export default function AdminPage() {
 
   const testAuth = async () => {
     try {
-      console.log("Testing authentication...");
+      console.log("=== AUTHENTICATION DEBUG TEST ===");
+      console.log("1. Current user from store:", user);
+      console.log("2. Auth token:", authService.getToken());
+      console.log("3. Is authenticated:", authService.isAuthenticated());
+
+      // Test basic endpoint
+      console.log("4. Testing basic endpoint...");
+      const basicResponse = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL || "http://192.168.29.141:8000"
+        }/api/auth/test`
+      );
+      const basicData = await basicResponse.json();
+      console.log("Basic endpoint response:", basicData);
+
+      // Test auth endpoint
+      console.log("5. Testing auth endpoint...");
+      const authResponse = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL || "http://192.168.29.141:8000"
+        }/api/auth/test-auth`,
+        {
+          headers: {
+            Authorization: `Bearer ${authService.getToken()}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const authData = await authResponse.json();
+      console.log("Auth endpoint response:", authData);
+
+      // Test token debug endpoint
+      console.log("6. Testing token debug endpoint...");
+      const tokenResponse = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL || "http://192.168.29.141:8000"
+        }/api/auth/debug-token`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${authService.getToken()}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const tokenData = await tokenResponse.json();
+      console.log("Token debug response:", tokenData);
+
+      // Test current user endpoint
+      console.log("7. Testing current user endpoint...");
       const currentUser = await authService.getCurrentUser();
       console.log("Current user from API:", currentUser);
     } catch (error) {
       console.error("Auth test failed:", error);
+      console.error("Error details:", {
+        message: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+    }
+  };
+
+  const testEmail = async () => {
+    try {
+      console.log("=== EMAIL TEST ===");
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL || "http://192.168.29.141:8000"
+        }/api/auth/test-email`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${authService.getToken()}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+      console.log("Email test response:", data);
+      alert(`Email test: ${data.message || data.error}`);
+    } catch (error) {
+      console.error("Email test failed:", error);
+      alert(
+        `Email test failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   };
 
@@ -182,6 +263,25 @@ export default function AdminPage() {
                     />
                   </svg>
                   Test Auth
+                </button>
+                <button
+                  onClick={testEmail}
+                  className="btn-secondary flex items-center gap-2"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Test Email
                 </button>
                 <button className="btn-secondary flex items-center gap-2">
                   <svg
