@@ -575,7 +575,7 @@ def toggle_employee_status(employee_id):
 @jwt_required()
 @require_admin_role
 def reset_employee_password(employee_id):
-    """Reset employee password (admin only)"""
+    """Reset employee password with random password generation (admin only)"""
     try:
         user_id = get_jwt_identity()
         admin_user = User.query.filter_by(id=user_id).first()
@@ -590,8 +590,11 @@ def reset_employee_password(employee_id):
         if not employee:
             return jsonify({"error": "Employee not found"}), 404
         
+        # Generate random password
+        new_password = generate_temp_password()
+        
         # Hash new password
-        new_hashed_password = bcrypt.generate_password_hash(data['new_password']).decode('utf-8')
+        new_hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
         
         # Update password
         employee.password_hash = new_hashed_password
@@ -603,18 +606,20 @@ def reset_employee_password(employee_id):
                 employee_email=employee.email,
                 employee_name=employee.name,
                 organization_name=admin_user.company.name,
-                new_password=data['new_password']
+                new_password=new_password
             )
         except Exception as email_error:
             # Log email error but don't fail the password reset
             print(f"Failed to send password reset email: {email_error}")
         
         return jsonify({
-            "message": "Employee password reset successfully",
+            "message": "Employee password reset successfully. New password has been sent to their email.",
             "employee": {
                 "id": str(employee.id),
                 "email": employee.email,
-                "name": employee.name
+                "name": employee.name,
+                "role": employee.role.value,
+                "is_active": employee.is_active
             }
         }), 200
         

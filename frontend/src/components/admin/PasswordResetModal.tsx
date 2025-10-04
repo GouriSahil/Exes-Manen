@@ -47,7 +47,7 @@ export default function PasswordResetModal({
           ?
         </p>
         <p className="text-sm text-muted-foreground mb-6">
-          A new temporary password will be generated and sent to{" "}
+          A new random password will be automatically generated and sent to{" "}
           <span className="font-medium text-foreground">{employee.email}</span>.
           The employee will need to change it on their next login.
         </p>

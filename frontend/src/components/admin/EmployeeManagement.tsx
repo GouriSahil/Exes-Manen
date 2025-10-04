@@ -93,12 +93,11 @@ export default function EmployeeManagement({
   };
 
   const handleResetPassword = async (employeeId: string) => {
-    const newPassword = prompt("Enter new password for employee:");
-    if (!newPassword) return;
-
     try {
-      await authService.resetEmployeePassword(employeeId, newPassword);
-      alert("Password reset successfully");
+      const result = await authService.resetEmployeePassword(employeeId);
+      alert(result.message);
+      // Reload employees to get updated data
+      await loadEmployees();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to reset password");
     }

@@ -324,22 +324,21 @@ class AuthService {
   }
 
   /**
-   * Reset employee password (admin only)
+   * Reset employee password with random password generation (admin only)
    */
-  async resetEmployeePassword(
-    employeeId: string,
-    newPassword: string
-  ): Promise<{
+  async resetEmployeePassword(employeeId: string): Promise<{
     message: string;
     employee: {
       id: string;
       email: string;
       name: string;
+      role: string;
+      is_active: boolean;
     };
   }> {
     return this.request(`/admin/employees/${employeeId}/reset-password`, {
       method: "POST",
-      body: { new_password: newPassword },
+      body: {},
     });
   }
 
