@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useId } from "react";
+import { createPortal } from "react-dom";
 
 export interface SelectOption {
   value: string;
@@ -44,6 +45,11 @@ export default function CustomSelect({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [dropdownPosition, setDropdownPosition] = useState({
+    top: 0,
+    left: 0,
+    width: 0,
+  });
   const selectRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownId = useId();
@@ -70,6 +76,16 @@ export default function CustomSelect({
 
   const handleToggle = () => {
     if (disabled) return;
+
+    if (!isOpen && selectRef.current) {
+      const rect = selectRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+
     setIsOpen(!isOpen);
     if (!isOpen && searchable && inputRef.current) {
       inputRef.current.focus();
@@ -134,9 +150,14 @@ export default function CustomSelect({
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const dropdownElement = document.getElementById(dropdownId);
+
       if (
         selectRef.current &&
-        !selectRef.current.contains(event.target as Node)
+        !selectRef.current.contains(target) &&
+        dropdownElement &&
+        !dropdownElement.contains(target)
       ) {
         setIsOpen(false);
         setSearchTerm("");
@@ -144,9 +165,12 @@ export default function CustomSelect({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isOpen, dropdownId]);
 
   return (
     <div className={`relative ${className}`}>
@@ -247,62 +271,71 @@ export default function CustomSelect({
           </div>
         </div>
 
-        {/* Dropdown */}
-        {isOpen && (
-          <div 
-            id={dropdownId}
-            role="listbox"
-            className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-lg shadow-lg z-50 max-h-60 overflow-hidden">
-            <div className="overflow-y-auto max-h-60">
-              {filteredOptions.length === 0 ? (
-                <div className="px-4 py-3 text-sm text-muted-foreground text-center">
-                  {searchable && searchTerm
-                    ? "No options found"
-                    : "No options available"}
-                </div>
-              ) : (
-                filteredOptions.map((option, index) => (
-                  <div
-                    key={option.value}
-                    className={`px-4 py-3 cursor-pointer transition-colors ${
-                      index === highlightedIndex
-                        ? "bg-primary-100 dark:bg-primary-900/20 text-primary-900 dark:text-primary-100"
-                        : "hover:bg-muted"
-                    } ${
-                      option.disabled ? "opacity-50 cursor-not-allowed" : ""
-                    } ${
-                      option.value === value
-                        ? "bg-primary-50 dark:bg-primary-900/10 text-primary-900 dark:text-primary-100"
-                        : "text-foreground"
-                    }`}
-                    onClick={() => handleSelect(option)}
-                    role="option"
-                    aria-selected={option.value === value}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="block truncate">{option.label}</span>
-                      {option.value === value && (
-                        <svg
-                          className="w-4 h-4 text-primary-600 ml-2 flex-shrink-0"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      )}
-                    </div>
+        {/* Dropdown Portal */}
+        {isOpen &&
+          typeof window !== "undefined" &&
+          createPortal(
+            <div
+              id={dropdownId}
+              role="listbox"
+              className="fixed bg-background border border-border rounded-lg shadow-lg z-[9999] max-h-60 overflow-hidden"
+              style={{
+                top: dropdownPosition.top,
+                left: dropdownPosition.left,
+                width: dropdownPosition.width,
+              }}
+            >
+              <div className="overflow-y-auto max-h-60">
+                {filteredOptions.length === 0 ? (
+                  <div className="px-4 py-3 text-sm text-muted-foreground text-center">
+                    {searchable && searchTerm
+                      ? "No options found"
+                      : "No options available"}
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
+                ) : (
+                  filteredOptions.map((option, index) => (
+                    <div
+                      key={option.value}
+                      className={`px-4 py-3 cursor-pointer transition-colors ${
+                        index === highlightedIndex
+                          ? "bg-primary-100 dark:bg-primary-900/20 text-primary-900 dark:text-primary-100"
+                          : "hover:bg-muted"
+                      } ${
+                        option.disabled ? "opacity-50 cursor-not-allowed" : ""
+                      } ${
+                        option.value === value
+                          ? "bg-primary-50 dark:bg-primary-900/10 text-primary-900 dark:text-primary-100"
+                          : "text-foreground"
+                      }`}
+                      onClick={() => handleSelect(option)}
+                      role="option"
+                      aria-selected={option.value === value}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="block truncate">{option.label}</span>
+                        {option.value === value && (
+                          <svg
+                            className="w-4 h-4 text-primary-600 ml-2 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>,
+            document.body
+          )}
       </div>
 
       {/* Error Message */}
