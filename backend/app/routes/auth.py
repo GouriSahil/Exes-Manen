@@ -35,12 +35,12 @@ def validate_password(password):
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    """Register a new user"""
+    """Register a new user and create organization"""
     try:
         data = request.get_json()
         
-        # Validate required fields
-        required_fields = ['email', 'name', 'password', 'company_id']
+        # Validate required fields for organization creation
+        required_fields = ['email', 'name', 'password', 'organization_name', 'country', 'currency_code']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({"error": f"{field} is required"}), 400
@@ -59,25 +59,42 @@ def register():
         if existing_user:
             return jsonify({"error": "User with this email already exists"}), 409
         
-        # Check if company exists
-        company = Company.query.filter_by(id=data['company_id']).first()
-        if not company:
-            return jsonify({"error": "Company not found"}), 404
+        # Check if organization name already exists
+        existing_company = Company.query.filter_by(name=data['organization_name']).first()
+        if existing_company:
+            return jsonify({"error": "Organization with this name already exists"}), 409
         
         # Hash password
         hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
         
-        # Create new user
+        # Create new organization first
+        company = Company(
+            name=data['organization_name'],
+            country=data['country'],
+            currency_code=data['currency_code'],
+            created_at=datetime.utcnow()
+        )
+        
+        db.session.add(company)
+        db.session.flush()  # Get the company ID without committing
+        
+        # Create new user as organization owner
         user = User(
             email=data['email'],
             name=data['name'],
             password_hash=hashed_password,
-            company_id=data['company_id'],
+            company_id=company.id,
+            role=UserRoleEnum.admin,  # Organization creator becomes admin
             is_active=True,
             created_at=datetime.utcnow()
         )
         
         db.session.add(user)
+        db.session.flush()  # Get the user ID without committing
+        
+        # Update company with owner_id
+        company.owner_id = user.id
+        
         db.session.commit()
         
         # Generate access token
@@ -85,14 +102,22 @@ def register():
         refresh_token = create_refresh_token(identity=str(user.id))
         
         return jsonify({
-            "message": "User registered successfully",
+            "message": "Organization and user created successfully",
             "user": {
                 "id": str(user.id),
                 "email": user.email,
                 "name": user.name,
+                "role": user.role.value,
                 "company_id": str(user.company_id),
                 "is_active": user.is_active,
                 "created_at": user.created_at.isoformat()
+            },
+            "organization": {
+                "id": str(company.id),
+                "name": company.name,
+                "country": company.country,
+                "currency_code": company.currency_code,
+                "owner_id": str(company.owner_id)
             },
             "access_token": access_token,
             "refresh_token": refresh_token
@@ -140,6 +165,7 @@ def login():
                 "id": str(user.id),
                 "email": user.email,
                 "name": user.name,
+                "role": user.role.value,
                 "company_id": str(user.company_id),
                 "is_active": user.is_active,
                 "last_login": user.last_login.isoformat() if user.last_login else None

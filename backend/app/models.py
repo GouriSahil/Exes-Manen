@@ -46,6 +46,7 @@ class Company(db.Model):
     name = db.Column(db.String, nullable=False)
     country = db.Column(db.String, nullable=False)
     currency_code = db.Column(db.String, nullable=False)
+    owner_id = db.Column(UUID(as_uuid=True), db.ForeignKey('users.id'), nullable=True)
     created_at = db.Column(db.DateTime, nullable=True)
 
 # 2. Permissions
@@ -95,6 +96,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String, nullable=False, unique=True)
     name = db.Column(db.String, nullable=False)
     password_hash = db.Column(db.String, nullable=True)
+    role = db.Column(db.Enum(UserRoleEnum), nullable=False, default=UserRoleEnum.employee)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     last_login = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, nullable=True)
