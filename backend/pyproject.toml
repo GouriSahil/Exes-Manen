@@ -1,0 +1,13 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "ackend API for Exes Manen: a platform for automated expense reimbursement, multi-level approvals, and flexible approval workflows for companies."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "flask>=3.1.2",
+    "flask-jwt-extended>=4.7.1",
+    "flask-rest>=1.3",
+    "flask-restful>=0.3.10",
+    "flask-sqlalchemy>=3.1.1",
+]
